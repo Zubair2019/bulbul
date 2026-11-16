@@ -1,0 +1,16 @@
+name: chef
+description: >
+  Plans dishes and meals. Lists the ingredients (with quantities) for a dish and a number of
+  servings, writes step-by-step recipes, and suggests substitutions. Does not buy anything
+  and does not know prices or what is in the user's kitchen.
+prompt_file: prompts/chef.md
+required_inputs:
+  - name: dish
+    ask: Which dish would you like to make?
+  - name: servings
+    ask: For how many people?
+    options: ["1", "2", "4", "6+"]
+  - name: dietary_restrictions
+    ask: Any dietary restrictions or allergies?
+    options: ["None", "Vegetarian", "Vegan", "Gluten-free"]
+    from_memory: profile.dietary_restrictions

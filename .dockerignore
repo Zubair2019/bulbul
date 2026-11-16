@@ -1,0 +1,14 @@
+# Backend image build context (repo root): only backend/ and voicecat/ code.
+*
+!backend
+!voicecat
+**/.venv
+**/.pytest_cache
+**/__pycache__
+**/*.pyc
+**/.env
+**/.env.*
+backend/tests
+voicecat/tests
+voicecat/models
+**/.swiggy_stub_state.json

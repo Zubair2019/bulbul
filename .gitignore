@@ -1,0 +1,26 @@
+.env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+.pytest_cache/
+
+# Node
+node_modules/
+dist/
+
+# OS / editors
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Local Swiggy stub state
+.swiggy_stub_state.json
+
+# voicecat local speech models (downloaded separately)
+voicecat/models/*
+!voicecat/models/README.md

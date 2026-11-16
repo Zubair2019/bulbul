@@ -1,0 +1,26 @@
+name: shopping
+kind: tools
+mcp_servers: ["swiggy:instamart"]
+description: >
+  Shops for groceries on Swiggy Instamart (delivery in minutes, India). Finds products for a
+  shopping list at the user's saved address, checks prices and stock, and builds a cart. It
+  changes the cart or places an order only after the user approves; the order is confirmed
+  separately, with the full bill. It also answers questions about the user's Swiggy account:
+  their saved delivery addresses, what's in the cart, past orders and delivery status.
+  Needs Swiggy connected (sidebar).
+prompt_file: prompts/shopping.md
+store: Swiggy Instamart
+only_on_request: true
+offer_after: [chef]
+request_keywords: [buy, purchase, order, shop, shopping, cart, checkout, instamart, swiggy, groceries,
+                   grocery, "add to", deliver, "get the ingredients", "get ingredients", "get me",
+                   mangwa, mangao, kharid,
+                   # reading the user's account (cart, addresses, orders) is something they ask for too
+                   address, addresses, "my orders", "past orders", "order status", "where is my order",
+                   track, delivery, delivered]
+required_inputs:
+  - name: items
+    ask: What should I buy or look up? (a shopping list, or e.g. "my cart", "my addresses", "my orders")
+    lookup_words: [my cart, current cart, cart contents, cart items, items in my cart, the cart,
+                   my addresses, saved addresses, delivery address, address, my orders, past orders,
+                   order status, delivery status, order]

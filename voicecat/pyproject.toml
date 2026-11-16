@@ -1,0 +1,36 @@
+[project]
+name = "voicecat"
+version = "0.1.0"
+description = "Real-time voice for Bulbul: frames, processors, barge-in, pluggable speech providers"
+requires-python = ">=3.11"
+dependencies = [
+    "fastapi>=0.115",
+    "httpx>=0.27",
+    "numpy>=1.26",
+    "pyyaml>=6.0",
+    "websockets>=13",
+]
+
+[project.optional-dependencies]
+# Free, local speech (no API keys). Models: see README.
+local = [
+    "faster-whisper>=1.0",
+    "kokoro-onnx>=0.4",
+    "onnxruntime>=1.18",
+]
+
+[dependency-groups]
+dev = ["pytest>=8.3", "pytest-asyncio>=0.24"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["voicecat"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+pythonpath = ["."]
+testpaths = ["tests"]

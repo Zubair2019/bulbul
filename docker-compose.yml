@@ -1,0 +1,89 @@
+# Full stack:   docker compose up --build        -> http://localhost:8080 (BULBUL_PORT changes it)
+# Only the DB:  docker compose up -d postgres    (for running backend/frontend locally)
+name: bulbul   # Compose project name (containers bulbul-*, volumes bulbul_*)
+
+services:
+  postgres:
+    image: postgres:17
+    environment:
+      POSTGRES_USER: bulbul
+      POSTGRES_PASSWORD: bulbul
+      POSTGRES_DB: bulbul
+    ports:
+      - "127.0.0.1:${POSTGRES_PORT:-5432}:5432"   # host side only for local dev; change it if 5432 is taken
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U bulbul -d bulbul"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    env_file:
+      - path: .env          # model API keys, Langfuse keys
+        required: false
+    environment:
+      # Overrides the localhost URL in .env: inside Docker the DB is the `postgres` service.
+      DATABASE_URL: postgresql://bulbul:bulbul@postgres:5432/bulbul
+      CORS_ORIGINS: http://localhost:${BULBUL_PORT:-8080}
+      LANGFUSE_TRACING_ENVIRONMENT: docker
+      PUBLIC_URL: http://localhost:${BULBUL_PORT:-8080}
+      # Local Swiggy stub (service below). Use https://mcp-staging.swiggy.com once allowlisted.
+      SWIGGY_BASE_URL: http://swiggy-stub:8765
+    depends_on:
+      postgres:
+        condition: service_healthy
+      swiggy-stub:
+        condition: service_started
+    volumes:
+      # Local speech models for live voice (Whisper, Kokoro, Silero); see voicecat/README.md.
+      - ./voicecat/models:/app/voicecat/models
+    restart: unless-stopped
+    # Not published to the host; the frontend's nginx proxies /api (and the voice WebSocket) to it.
+
+  # Local stand-in for Swiggy's Instamart MCP + sign-in (no real orders; OTP 123456).
+  swiggy-stub:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    command: ["python", "-m", "stubs.swiggy_instamart"]
+    environment:
+      HOST: 0.0.0.0
+      PORT: "8765"
+      SWIGGY_STUB_BASE_URL: http://swiggy-stub:8765
+      SWIGGY_STUB_PUBLIC_URL: http://localhost:${SWIGGY_STUB_PORT:-8766}   # the browser opens the sign-in page here
+      SWIGGY_STUB_STATE: /data/stub_state.json
+    ports:
+      - "${SWIGGY_STUB_PORT:-8766}:8765"   # 8765 on the host is the dev stub
+    volumes:
+      - swiggy_stub:/data
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8765/.well-known/oauth-protected-resource', timeout=2)"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    restart: unless-stopped
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "${BULBUL_PORT:-8080}:80"
+    depends_on:
+      backend:
+        condition: service_healthy
+    restart: unless-stopped
+
+  # Not used in phase 1. Uncomment when we add background runs, multi-worker
+  # stream fan-out (pub/sub), or rate limiting.
+  # redis:
+  #   image: redis:8
+  #   ports:
+  #     - "6379:6379"
+
+volumes:
+  pgdata:
+  swiggy_stub:

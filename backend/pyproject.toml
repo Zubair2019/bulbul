@@ -1,0 +1,44 @@
+[project]
+name = "bulbul-backend"
+version = "0.1.0"
+description = "Bulbul multi-agent assistant backend (FastAPI + LangGraph)"
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi>=0.115",
+    "uvicorn[standard]>=0.32",
+    "pydantic>=2.9",
+    "pydantic-settings>=2.6",
+    "pyyaml>=6.0",
+    "python-dotenv>=1.0",
+    "langgraph>=0.4",
+    "langgraph-checkpoint-postgres>=2.0",
+    "langchain-core>=0.3",
+    "langchain-google-genai>=2.0",
+    "langchain-openai>=0.3",
+    "langchain-anthropic>=0.3",
+    "langchain-xai>=0.2",
+    "psycopg[binary,pool]>=3.2",
+    "langfuse>=3.0",
+    "mcp>=1.20",
+    "cryptography>=44",
+    "voicecat[local]",  # live voice, ../voicecat (mounted at /api/voice)
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.3",
+    "pytest-asyncio>=0.24",
+    "httpx>=0.27",
+]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+pythonpath = ["."]
+testpaths = ["tests"]
+
+[tool.uv]
+package = false
+
+[tool.uv.sources]
+voicecat = { path = "../voicecat", editable = true }

@@ -1,0 +1,6 @@
+name: general
+description: >
+  Answers general questions, explains things, brainstorms, writes and edits short text.
+  Has no tools and no access to the user's accounts. Not for cooking, recipes or shopping.
+prompt_file: prompts/general.md
+required_inputs: []

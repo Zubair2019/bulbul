@@ -1,0 +1,71 @@
+# voicecat configuration: which speech providers to use, in order of preference.
+#
+# For each of stt / tts, the first provider in `order` that is available is used. A cloud
+# provider is available when its API key env var is set; a local one when its package (and
+# model files) are installed. "browser" always works: the client's own speech recognition /
+# speech synthesis (free, no setup, lower quality).
+#
+# A session can ask for specific providers: ws://.../ws?stt=whisper&tts=kokoro
+# Or override the order with env vars: VOICECAT_STT=whisper  VOICECAT_TTS=kokoro
+
+stt:
+  order: [deepgram, whisper, browser]
+  deepgram:            # best feel: streaming, ~300 ms
+    api_key_env: DEEPGRAM_API_KEY
+    model: nova-3
+    language: en       # "en-IN" for Indian English, "multi" for code-switching
+    endpointing_ms: 300
+    # Words Deepgram should expect (keyterm prompting, nova-3). Cuts mishearings like "Instamart card".
+    keyterms: [Bulbul, Swiggy, Instamart, cart, place the order, biryani, paneer, palak, ghee, dal, atta,
+               chole, masala, curd, dahi, jeera, haldi, coriander, rupees]
+  whisper:             # free, local (pip extra "local"); downloads the model on first use
+    model: base.en     # tiny.en is faster, small.en more accurate
+    download_root: models/whisper
+    device: cpu
+    compute_type: int8
+    language: en
+    # Words Whisper should expect (shopping + Indian kitchen). Cuts mishearings like "in-stamart card".
+    vocabulary: >-
+      Bulbul, Swiggy Instamart, my Instamart cart, place the order, add to cart, biryani, paneer,
+      palak, ghee, dal, atta, chole, masala, curd, dahi, jeera, haldi, coriander, rupees.
+
+tts:
+  order: [deepgram, cartesia, elevenlabs, kokoro, browser]
+  deepgram:            # Aura: same key (and credits) as Deepgram speech-to-text
+    api_key_env: DEEPGRAM_API_KEY
+    model: aura-2-thalia-en   # other Aura voices: aura-2-andromeda-en, aura-2-helena-en, aura-2-apollo-en, ...
+  cartesia:            # ~100 ms to first audio (needs a voice id)
+    api_key_env: CARTESIA_API_KEY
+    voice: ""          # a voice id from the Cartesia playground (required)
+    model: sonic-2
+    version: "2024-06-10"
+    language: en
+  elevenlabs:
+    api_key_env: ELEVENLABS_API_KEY
+    voice_id: 21m00Tcm4TlvDq8ikWAM
+    model: eleven_flash_v2_5
+  kokoro:              # free, local (pip extra "local") + model files (see README)
+    model_path: models/kokoro-v1.0.int8.onnx   # int8 = CPU-friendly; kokoro-v1.0.onnx = full quality
+    voices_path: models/voices-v1.0.bin
+    voice: af_heart
+    speed: 1.0
+    lang: en-us
+
+vad:
+  # energy: built in, no downloads. silero: much better with road noise (needs models/silero_vad.onnx).
+  provider: silero
+  silero_model: models/silero_vad.onnx
+  threshold: 0.6
+  start_secs: 0.2       # speech needed to count as "user started speaking"
+  stop_secs: 0.8        # silence needed to count as "user stopped"
+  interrupt_secs: 0.3   # talking over the bot this long stops it (barge-in)
+
+turns:
+  settle_secs: 0.35      # wait after the last words before sending the turn
+  final_wait_secs: 2.5   # max wait for speech-to-text after the user stops
+
+# Said while Bulbul works, so a driver never sits in silence (keyed by Bulbul agent name).
+fillers:
+  shopping: "Let me check Instamart."
+  chef: "Let me put that together."
+  default: "One moment."
